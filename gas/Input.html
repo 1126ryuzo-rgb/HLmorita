@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>評価入力</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Meiryo UI', 'Yu Gothic', sans-serif; background: #f0f4f8; color: #1a202c; }
+  header { background: #1F4E79; color: #fff; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 18px; }
+  header a { color: #BDD7EE; font-size: 13px; margin-left: auto; text-decoration: none; }
+  header a:hover { color: #fff; }
+  .container { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+
+  .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.1); padding: 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 15px; color: #1F4E79; border-bottom: 2px solid #BDD7EE; padding-bottom: 8px; margin-bottom: 16px; }
+
+  .form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { flex: 1; min-width: 160px; }
+  .form-group label { display: block; font-size: 12px; color: #555; margin-bottom: 4px; font-weight: bold; }
+  .form-group select, .form-group input[type=text] {
+    width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px;
+    font-size: 14px; font-family: inherit;
+  }
+  .form-group select:focus, .form-group input:focus { outline: none; border-color: #2E75B6; box-shadow: 0 0 0 2px #BDD7EE; }
+
+  .q-tabs { display: flex; gap: 0; margin-bottom: 16px; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; }
+  .q-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer;
+           background: #f7f9fc; border: none; font-family: inherit; transition: background .15s; }
+  .q-tab.active { background: #1F4E79; color: #fff; font-weight: bold; }
+  .q-tab:hover:not(.active) { background: #BDD7EE; }
+
+  .kpi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .kpi-table th { background: #1F4E79; color: #fff; padding: 8px 6px; text-align: center; white-space: nowrap; }
+  .kpi-table td { padding: 7px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+  .kpi-table tr:hover td { background: #f7fafc; }
+  .kpi-table tr.bonus-row td { background: #FFF9E6; }
+  .kpi-table tr.bonus-row:hover td { background: #FFF3C4; }
+  .kpi-table .name-col { width: 28%; }
+  .kpi-table .weight-col { width: 8%; text-align: center; }
+  .kpi-table .result-col { width: 14%; }
+  .kpi-table .scale-col { width: 14%; }
+  .kpi-table .wscore-col { width: 10%; text-align: center; font-weight: bold; color: #2E75B6; }
+  .kpi-table .thresh-col { width: 26%; font-size: 11px; color: #666; }
+
+  .kpi-table input[type=text] { width: 100%; padding: 5px 7px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+  .kpi-table select { width: 100%; padding: 5px 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+  .kpi-table input:focus, .kpi-table select:focus { outline: none; border-color: #2E75B6; }
+
+  .total-row { background: #E2EFDA; font-weight: bold; }
+  .total-row td { padding: 9px 6px; }
+
+  .btn-submit { background: #2E75B6; color: #fff; border: none; border-radius: 6px;
+                padding: 12px 32px; font-size: 15px; cursor: pointer; display: block;
+                margin: 20px auto 0; font-family: inherit; transition: background .15s; }
+  .btn-submit:hover { background: #1F4E79; }
+  .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+
+  .msg { padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 14px; display: none; }
+  .msg.success { background: #E2EFDA; color: #276749; border: 1px solid #9AE6B4; }
+  .msg.error   { background: #FED7D7; color: #822727; border: 1px solid #FC8181; }
+
+  .badge-bonus { background: #FDB800; color: #fff; font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+  .no-weight { color: #999; font-size: 12px; }
+
+  .semi-total { background: #FFD966; }
+  .info-box { font-size: 12px; color: #666; background: #f7f9fc; border-left: 3px solid #BDD7EE;
+              padding: 8px 12px; margin-bottom: 14px; border-radius: 0 4px 4px 0; }
+
+  @media (max-width: 640px) {
+    .thresh-col { display: none; }
+    .form-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏢 ハウジングロビー 評価入力</h1>
+  <a href="?page=dashboard">📊 集計ダッシュボード →</a>
+</header>
+
+<div class="container">
+  <!-- 社員・四半期選択 -->
+  <div class="card">
+    <h2>① 社員・四半期を選択</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>部署</label>
+        <select id="sel-dept" onchange="filterEmployees()">
+          <option value="">-- 部署を選択 --</option>
+          <option>リーシング</option>
+          <option>カスタマー</option>
+          <option>経営企画</option>
+          <option>民泊課</option>
+          <option>総務管理</option>
+          <option>管理推進</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>社員名</label>
+        <select id="sel-emp" onchange="onEmployeeChange()">
+          <option value="">-- 社員を選択 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>四半期</label>
+        <select id="sel-quarter" onchange="onQuarterChange()">
+          <option value="">-- 四半期を選択 --</option>
+          <option value="Q1">Q1（11月〜1月）</option>
+          <option value="Q2">Q2（2月〜4月）</option>
+          <option value="Q3">Q3（5月〜7月）</option>
+          <option value="Q4">Q4（8月〜10月）</option>
+        </select>
+      </div>
+    </div>
+    <div id="emp-info" style="display:none" class="info-box"></div>
+  </div>
+
+  <!-- KPI入力テーブル -->
+  <div class="card" id="kpi-card" style="display:none">
+    <h2>② KPI評価を入力</h2>
+    <div class="info-box" id="kpi-info">尺度結果（0〜100）を選択してください。結果（実績）は任意入力です。</div>
+    <div style="overflow-x:auto">
+      <table class="kpi-table" id="kpi-table">
+        <thead>
+          <tr>
+            <th class="name-col">評価項目</th>
+            <th class="weight-col">重み(%)</th>
+            <th class="result-col">結果（実績）</th>
+            <th class="scale-col">尺度結果</th>
+            <th class="wscore-col">重み×尺度</th>
+            <th class="thresh-col">評価基準</th>
+          </tr>
+        </thead>
+        <tbody id="kpi-tbody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="4" style="text-align:right;padding-right:12px">合計点（自動）</td>
+            <td class="wscore-col" id="total-display">—</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()" disabled>保存する</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script>
+const EMPLOYEES = <?= JSON.stringify(employees) ?>;
+const KPIS = <?= JSON.stringify(kpis) ?>;
+const KPI_TEMPLATE = <?= JSON.stringify(kpiTemplate) ?>;
+
+let currentKPIs = [];
+
+function filterEmployees() {
+  const dept = document.getElementById('sel-dept').value;
+  const sel = document.getElementById('sel-emp');
+  sel.innerHTML = '<option value="">-- 社員を選択 --</option>';
+  EMPLOYEES.filter(e => !dept || e.dept === dept).forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.name;
+    opt.textContent = e.name + '（' + e.role + '）';
+    sel.appendChild(opt);
+  });
+  document.getElementById('kpi-card').style.display = 'none';
+  document.getElementById('emp-info').style.display = 'none';
+}
+
+function onEmployeeChange() {
+  loadKPIsIfReady();
+}
+
+function onQuarterChange() {
+  loadKPIsIfReady();
+}
+
+function loadKPIsIfReady() {
+  const name = document.getElementById('sel-emp').value;
+  const quarter = document.getElementById('sel-quarter').value;
+  if (!name || !quarter) return;
+
+  const emp = EMPLOYEES.find(e => e.name === name);
+  if (!emp) return;
+
+  document.getElementById('emp-info').style.display = 'block';
+  document.getElementById('emp-info').innerHTML =
+    '👤 <strong>' + emp.name + '</strong>　部署：' + emp.dept + '　役職：' + emp.role +
+    '　対象期間：' + quarterPeriod(quarter);
+
+  const key = emp.dept + '_' + emp.role;
+  currentKPIs = JSON.parse(JSON.stringify(KPIS[key] || KPI_TEMPLATE));
+
+  // 既存データ読み込み
+  google.script.run
+    .withSuccessHandler(function(jsonStr) {
+      const existing = JSON.parse(jsonStr);
+      if (existing) {
+        existing.kpis.forEach(function(ek) {
+          const kpi = currentKPIs.find(k => k.name === ek.name);
+          if (kpi) { kpi._result = ek.result_input || ''; kpi._scale = ek.scale_result || ''; }
+        });
+      }
+      renderKPITable();
+    })
+    .withFailureHandler(function() { renderKPITable(); })
+    .getEvaluationForEdit(name, quarter);
+}
+
+function quarterPeriod(q) {
+  return { Q1:'11月〜1月', Q2:'2月〜4月', Q3:'5月〜7月', Q4:'8月〜10月' }[q] || q;
+}
+
+function renderKPITable() {
+  const tbody = document.getElementById('kpi-tbody');
+  tbody.innerHTML = '';
+  currentKPIs.forEach(function(kpi, idx) {
+    const tr = document.createElement('tr');
+    if (kpi.bonus) tr.classList.add('bonus-row');
+    const bonusBadge = kpi.bonus ? '<span class="badge-bonus">加点</span>' : '';
+    const weightDisp = kpi.weight !== null ? kpi.weight + '%' : '<span class="no-weight">—</span>';
+    const scaleOpts = [10,20,30,40,50,60,70,80,90,100].map(v =>
+      '<option value="' + v + '"' + (kpi._scale == v ? ' selected' : '') + '>' + v + '</option>'
+    ).join('');
+
+    tr.innerHTML =
+      '<td class="name-col">' + kpi.name + bonusBadge + '</td>' +
+      '<td class="weight-col">' + weightDisp + '</td>' +
+      '<td class="result-col"><input type="text" id="result_' + idx + '" placeholder="実績値" value="' + (kpi._result || '') + '" oninput="calcRow(' + idx + ')"></td>' +
+      '<td class="scale-col"><select id="scale_' + idx + '" onchange="calcRow(' + idx + ')">' +
+        '<option value="">選択</option>' + scaleOpts + '</select></td>' +
+      '<td class="wscore-col" id="wscore_' + idx + '">—</td>' +
+      '<td class="thresh-col">' + (kpi.thresholds || '—') + '</td>';
+    tbody.appendChild(tr);
+    calcRow(idx);
+  });
+
+  document.getElementById('kpi-card').style.display = 'block';
+  document.getElementById('btn-submit').disabled = false;
+  calcTotal();
+}
+
+function calcRow(idx) {
+  const kpi = currentKPIs[idx];
+  const scaleEl = document.getElementById('scale_' + idx);
+  const wscoreEl = document.getElementById('wscore_' + idx);
+  const scale = parseFloat(scaleEl.value);
+  if (!isNaN(scale) && kpi.weight !== null) {
+    const ws = (kpi.weight * scale / 100).toFixed(1);
+    wscoreEl.textContent = ws;
+  } else if (!isNaN(scale) && kpi.bonus) {
+    wscoreEl.textContent = '+' + scale;
+  } else {
+    wscoreEl.textContent = '—';
+  }
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+  currentKPIs.forEach(function(kpi, idx) {
+    const scale = parseFloat(document.getElementById('scale_' + idx).value);
+    if (!isNaN(scale) && kpi.weight !== null) total += kpi.weight * scale / 100;
+  });
+  document.getElementById('total-display').textContent =
+    currentKPIs.some((k, i) => !isNaN(parseFloat(document.getElementById('scale_' + i)?.value)))
+    ? total.toFixed(1) : '—';
+}
+
+function submitForm() {
+  const name = document.getElementById('sel-emp').value;
+  const quarter = document.getElementById('sel-quarter').value;
+  const emp = EMPLOYEES.find(e => e.name === name);
+  if (!name || !quarter || !emp) { showMsg('社員と四半期を選択してください', 'error'); return; }
+
+  const kpisData = currentKPIs.map(function(kpi, idx) {
+    return {
+      name: kpi.name,
+      weight: kpi.weight,
+      bonus: kpi.bonus,
+      result_input: document.getElementById('result_' + idx).value,
+      scale_result: document.getElementById('scale_' + idx).value
+    };
+  });
+
+  const payload = { name: emp.name, dept: emp.dept, role: emp.role, quarter: quarter, kpis: kpisData };
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('btn-submit').textContent = '保存中...';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      const r = JSON.parse(res);
+      if (r.success) {
+        showMsg('✅ 保存しました（合計点：' + r.total + '点）' + (r.updated ? '（更新）' : '（新規）'), 'success');
+      } else {
+        showMsg('❌ エラー：' + r.error, 'error');
+      }
+      document.getElementById('btn-submit').disabled = false;
+      document.getElementById('btn-submit').textContent = '保存する';
+    })
+    .withFailureHandler(function(err) {
+      showMsg('❌ 通信エラー：' + err, 'error');
+      document.getElementById('btn-submit').disabled = false;
+      document.getElementById('btn-submit').textContent = '保存する';
+    })
+    .saveEvaluation(JSON.stringify(payload));
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+</script>
+</body>
+</html>
