@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Meiryo UI','Hiragino Sans',sans-serif;background:#f0f4f8;color:#1a202c;font-size:14px;}
+
+.top-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#1F4E79;color:#fff;flex-wrap:wrap;position:sticky;top:0;z-index:50;}
+.top-title{font-size:15px;font-weight:700;margin-right:8px;}
+.top-title small{font-weight:400;font-size:11px;color:#BDD7EE;display:block;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.tab-btn{padding:7px 14px;border:1px solid rgba(255,255,255,.4);border-radius:8px;font-size:12px;cursor:pointer;background:transparent;color:rgba(255,255,255,.85);font-family:inherit;position:relative;}
+.tab-btn.active{background:#fff;color:#1F4E79;font-weight:700;border-color:#fff;}
+.tab-badge{background:#E53E3E;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:0 6px;margin-left:5px;}
+.user-box{display:flex;align-items:center;gap:6px;font-size:12px;}
+.role-tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;}
+
+.container{max-width:1080px;margin:20px auto;padding:0 16px;}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:20px;margin-bottom:18px;}
+.card h2{font-size:14px;color:#1F4E79;border-bottom:2px solid #BDD7EE;padding-bottom:8px;margin-bottom:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.card h2 .sub{font-weight:400;font-size:11px;color:#888;margin-left:auto;}
+
+.info-box{font-size:12px;color:#555;background:#EBF4FD;border-left:3px solid #2E75B6;padding:9px 12px;margin-bottom:14px;border-radius:0 4px 4px 0;line-height:1.6;}
+.warn-box{font-size:12px;color:#7B341E;background:#FFF5EB;border-left:3px solid #DB6D28;padding:9px 12px;margin-bottom:14px;border-radius:0 4px 4px 0;line-height:1.6;}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.sum-card{background:#fff;border-radius:8px;padding:14px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.07);border-top:4px solid #2E75B6;}
+.sum-card.red{border-top-color:#E53E3E;} .sum-card.orange{border-top-color:#DB6D28;}
+.sum-card.green{border-top-color:#38A169;} .sum-card.gray{border-top-color:#A0AEC0;}
+.sum-label{font-size:11px;color:#666;margin-bottom:5px;}
+.sum-val{font-size:26px;font-weight:700;color:#1F4E79;}
+.sum-sub{font-size:10px;color:#999;margin-top:3px;}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:11px;color:#555;font-weight:700;}
+.fg select,.fg input{padding:7px 9px;border:1px solid #ccc;border-radius:6px;font-size:13px;font-family:inherit;}
+.fg select:focus,.fg input:focus{outline:none;border-color:#2E75B6;}
+.btn{padding:8px 16px;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;}
+.btn-primary{background:#2E75B6;color:#fff;} .btn-primary:hover{background:#1F4E79;}
+.btn-ok{background:#38A169;color:#fff;} .btn-ok:hover{background:#276749;}
+.btn-ghost{background:#fff;color:#2E75B6;border:1px solid #2E75B6;} .btn-ghost:hover{background:#EBF4FD;}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:5px;}
+.btn:disabled{background:#cbd5e0!important;color:#fff!important;cursor:not-allowed;border-color:#cbd5e0!important;}
+.btn-mini{width:26px;height:26px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer;font-weight:700;font-size:14px;line-height:1;color:#2E75B6;}
+.btn-mini:hover{background:#EBF4FD;}
+
+.tbl-wrap{overflow-x:auto;}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+table.tbl th{background:#1F4E79;color:#fff;padding:8px 8px;text-align:center;white-space:nowrap;font-weight:700;}
+table.tbl td{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:center;vertical-align:middle;}
+table.tbl tr:hover td{background:#f7fafc;}
+.name-td{text-align:left;font-weight:700;}
+.left-td{text-align:left;}
+.cat-row td{background:#BDD7EE;color:#1F4E79;font-weight:700;text-align:left;font-size:12px;padding:6px 10px;}
+
+.chip{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:700;white-space:nowrap;}
+.chip-danger{background:#FED7D7;color:#9B2C2C;}
+.chip-warn{background:#FEEBC8;color:#9C4221;}
+.chip-ok{background:#C6F6D5;color:#22543D;}
+.chip-over{background:#E9D8FD;color:#553C9A;}
+.chip-gray{background:#EDF2F7;color:#4A5568;}
+.chip-blue{background:#BEE3F8;color:#2A4365;}
+
+.stock-cell{display:inline-flex;align-items:center;gap:6px;}
+.stock-num{min-width:34px;font-weight:700;font-size:15px;}
+.sup-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;color:#fff;}
+
+.draft-box{border:1px solid #d1d5db;border-radius:10px;margin-bottom:16px;overflow:hidden;}
+.draft-head{padding:11px 14px;display:flex;align-items:center;gap:10px;color:#fff;flex-wrap:wrap;}
+.draft-head .m{font-size:11px;background:rgba(255,255,255,.25);padding:2px 8px;border-radius:5px;}
+.draft-head .amt{margin-left:auto;font-weight:700;font-size:15px;}
+.draft-body{padding:14px;background:#fff;}
+.draft-pre{background:#F7FAFC;border:1px dashed #cbd5e0;border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;font-family:'Consolas','Meiryo',monospace;line-height:1.7;color:#2d3748;max-height:340px;overflow:auto;}
+.draft-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.check-item{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;border-bottom:1px dotted #e2e8f0;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a202c;color:#fff;padding:11px 22px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3);max-width:80%;}
+.toast.show{opacity:1;bottom:34px;}
+.toast.err{background:#9B2C2C;}
+.mini-input{width:64px;padding:4px 6px;border:1px solid #ccc;border-radius:5px;text-align:center;font-family:inherit;font-size:13px;}
+
+.hidden{display:none!important;}
+.muted{color:#999;font-size:11px;}
+.row-flag{background:#FFFAF0!important;}
+.footer-note{text-align:center;color:#a0aec0;font-size:11px;margin:24px 0;line-height:1.7;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#666;margin-bottom:12px;}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:300;display:flex;align-items:center;justify-content:center;}
+.spinner{width:38px;height:38px;border:4px solid #cbd5e0;border-top-color:#1F4E79;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div></div>
+
+<div class="top-bar">
+  <div class="top-title">🏠 民泊 消耗品 在庫・発注アシスタント<small>在庫と発注点を照合し、発注先ごとの下書きを提示（実行は承認者が確認）</small></div>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="dashboard">📊 ダッシュボード</button>
+    <button class="tab-btn" data-tab="order">🧾 発注提案<span class="tab-badge hidden" id="orderBadge">0</span></button>
+    <button class="tab-btn" data-tab="receive">📦 入荷・履歴</button>
+    <button class="tab-btn" data-tab="master">🗂️ 品目マスタ</button>
+    <button class="tab-btn" data-tab="log">📝 監査ログ</button>
+  </div>
+  <div class="user-box">
+    <span id="userEmail">—</span>
+    <span class="role-tag" id="roleTag"></span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ダッシュボード -->
+  <div class="tab-pane" id="pane-dashboard">
+    <div class="summary-grid" id="summaryGrid"></div>
+    <div class="card">
+      <h2>在庫ダッシュボード <span class="sub">分類・状況ごとに色分け／誰が見ても一目で分かる</span></h2>
+      <div class="legend">
+        <span><span class="dot" style="background:#E53E3E"></span>欠品（在庫0）</span>
+        <span><span class="dot" style="background:#DB6D28"></span>要発注（発注点以下）</span>
+        <span><span class="dot" style="background:#38A169"></span>適正</span>
+        <span><span class="dot" style="background:#805AD5"></span>過剰（適正在庫の2倍超）</span>
+      </div>
+      <div class="toolbar">
+        <div class="fg"><label>分類</label><select id="fCat" onchange="renderDashboard()"><option value="">すべて</option></select></div>
+        <div class="fg"><label>状況</label><select id="fStatus" onchange="renderDashboard()">
+          <option value="">すべて</option><option value="欠品">欠品</option><option value="要発注">要発注</option><option value="適正">適正</option><option value="過剰">過剰</option></select></div>
+        <div class="fg"><label>発注先</label><select id="fSup" onchange="renderDashboard()"><option value="">すべて</option></select></div>
+        <div class="fg"><label>キーワード</label><input type="text" id="fKw" placeholder="品名で検索" oninput="renderDashboard()"></div>
+      </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th style="text-align:left">品名 / コード</th><th>発注先</th><th>状況</th><th>在庫</th><th>発注点</th><th>適正在庫</th><th>単価</th><th>在庫金額</th><th>最終更新</th></tr></thead>
+        <tbody id="dashBody"></tbody></table></div>
+      <p class="muted" style="margin-top:10px">※「＋／−」で在庫を即時調整（発注担当者以上）。変更はスプレッドシートに保存され、監査ログに記録されます。</p>
+    </div>
+  </div>
+
+  <!-- 発注提案 -->
+  <div class="tab-pane hidden" id="pane-order">
+    <div class="card">
+      <h2>発注が必要な品目（自動検知） <span class="sub">在庫 ≦ 発注点 を自動抽出</span></h2>
+      <div class="info-box" id="orderInfo"></div>
+      <div id="orderDrafts"></div>
+    </div>
+  </div>
+
+  <!-- 入荷・履歴 -->
+  <div class="tab-pane hidden" id="pane-receive">
+    <div class="card">
+      <h2>入荷待ち（発注済） <span class="sub">入荷確認すると在庫へ自動反映</span></h2>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>発注日</th><th>発注先</th><th style="text-align:left">品名</th><th>発注数</th><th>金額</th><th>状況</th><th>操作</th></tr></thead>
+        <tbody id="pendingBody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>発注履歴 <span class="sub">発注→納品確認まで自動記録</span></h2>
+      <div class="toolbar"><div class="fg"><label>発注先</label><select id="hSup" onchange="renderReceive()"><option value="">すべて</option></select></div></div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>発注日</th><th>発注先</th><th style="text-align:left">品名</th><th>発注数</th><th>単価</th><th>金額</th><th>状況</th><th>納品日</th></tr></thead>
+        <tbody id="historyBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- 品目マスタ -->
+  <div class="tab-pane hidden" id="pane-master">
+    <div class="card">
+      <h2>データ検証（表記ゆれ・空欄の検知） <span class="sub">要確認ポイント</span></h2>
+      <div id="validationArea"></div>
+    </div>
+    <div class="card">
+      <h2>品目マスタ <span class="sub">単価・発注点・発注先の改定はここで即反映</span></h2>
+      <div class="info-box">セルを直接編集すると保存されます（承認者のみ）。単価改定・発注先変更・発注ルール改定に対応。行末の🗑で削除できます。</div>
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="btnAdd" onclick="addItem()">＋ 品目を追加</button>
+        <button class="btn btn-ghost btn-sm" id="btnImport" onclick="document.getElementById('csvFile').click()">⬆ CSV/Excelから取込</button>
+        <input type="file" id="csvFile" accept=".csv,.txt" class="hidden" onchange="importCSV(this)">
+        <button class="btn btn-ghost btn-sm" onclick="exportMasterCSV()">⬇ マスタCSV出力</button>
+      </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>コード</th><th style="text-align:left">品名</th><th>分類</th><th>発注先</th><th>単位</th><th>在庫</th><th>発注点</th><th>適正在庫</th><th>発注ロット</th><th>単価(円)</th><th></th></tr></thead>
+        <tbody id="masterBody"></tbody></table></div>
+      <p class="muted" style="margin-top:10px">CSV取込フォーマット：<code>コード,品名,分類,発注先,単位,在庫,発注点,適正在庫,発注ロット,単価</code>（1行目ヘッダー可）。</p>
+    </div>
+  </div>
+
+  <!-- 監査ログ -->
+  <div class="tab-pane hidden" id="pane-log">
+    <div class="card">
+      <h2>監査ログ <span class="sub">在庫変更・発注・改定をすべて記録</span></h2>
+      <div class="toolbar"><div class="fg"><label>種別</label><select id="logType" onchange="renderLog()"><option value="">すべて</option></select></div></div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>日時</th><th>操作者</th><th>権限</th><th>種別</th><th style="text-align:left">内容</th></tr></thead>
+        <tbody id="logBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    データはGoogleスプレッドシートに保存され、全スタッフで共有されます。権限はGoogleアカウント（権限マスタ）で判定します。<br>
+    発注先の認証情報（ID・パスワード）はこのアプリには保存しません。発注の最終確定は承認者による確認を経て実行します。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* サーバーから注入される設定 */
+const SUPPLIERS  = <?!= suppliersJson ?>;
+const CATEGORIES = <?!= categoriesJson ?>;
+const PERMS      = <?!= permsJson ?>;
+const CAT_COLOR  = {'アメニティ':'#4299E1','清掃用品':'#48BB78','トイレ・キッチン消耗品':'#ED8936','リネン・寝具':'#9F7AEA','備品・設備':'#718096'};
+
+/* 状態（サーバーが唯一の真実） */
+let STATE = { me:{email:'',role:'viewer',roleName:'閲覧者',perms:PERMS.viewer}, items:[], orders:[], logs:[] };
+function can(k){ return !!(STATE.me.perms && STATE.me.perms[k]); }
+
+/* ---- サーバー呼び出し ---- */
+function showLoad(b){ document.getElementById('loading').classList.toggle('hidden', !b); }
+function call(name, args, okMsg){
+  showLoad(true);
+  const runner = google.script.run
+    .withSuccessHandler(function(res){ showLoad(false); applyState(res); if(okMsg) toast(okMsg); })
+    .withFailureHandler(function(err){ showLoad(false); toast(err && err.message ? err.message : 'エラーが発生しました', true); });
+  runner[name].apply(runner, args || []);
+}
+function applyState(json){
+  try { STATE = JSON.parse(json); } catch(e){ toast('データ取得に失敗しました', true); return; }
+  renderAll();
+}
+
+/* ---- ユーティリティ ---- */
+function yen(n){ return '¥'+Number(n||0).toLocaleString('ja-JP'); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
+function p2(n){ return (n<10?'0':'')+n; }
+function toast(m,isErr){ const t=document.getElementById('toast'); t.textContent=m; t.className='toast show'+(isErr?' err':''); setTimeout(()=>t.className='toast',2600); }
+
+function statusOf(it){
+  if(it.stock<=0) return '欠品';
+  if(it.stock<=it.reorder) return '要発注';
+  if(it.target && it.stock > it.target*2) return '過剰';
+  return '適正';
+}
+function chipClass(st){ return {'欠品':'chip-danger','要発注':'chip-warn','適正':'chip-ok','過剰':'chip-over'}[st]||'chip-gray'; }
+function suggestQty(it){ const need=Math.max((it.target||it.reorder+it.lot)-it.stock,it.lot); const lot=it.lot>0?it.lot:1; return Math.ceil(need/lot)*lot; }
+
+/* ---- タブ ---- */
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('.tab-btn'); if(!b)return;
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('pane-'+b.dataset.tab).classList.remove('hidden');
+});
+
+/* ============ ダッシュボード ============ */
+function renderDashboard(){
+  const items=STATE.items;
+  const counts={欠品:0,要発注:0,適正:0,過剰:0}; let stockVal=0;
+  items.forEach(it=>{ counts[statusOf(it)]++; stockVal+=it.stock*it.price; });
+  const needOrder=counts.欠品+counts.要発注;
+  document.getElementById('summaryGrid').innerHTML=`
+    <div class="sum-card red"><div class="sum-label">欠品</div><div class="sum-val">${counts.欠品}</div><div class="sum-sub">在庫0の品目</div></div>
+    <div class="sum-card orange"><div class="sum-label">要発注</div><div class="sum-val">${counts.要発注}</div><div class="sum-sub">発注点以下</div></div>
+    <div class="sum-card green"><div class="sum-label">適正</div><div class="sum-val">${counts.適正}</div><div class="sum-sub">在庫OK</div></div>
+    <div class="sum-card gray"><div class="sum-label">総在庫金額</div><div class="sum-val" style="font-size:20px">${yen(stockVal)}</div><div class="sum-sub">全${items.length}品目</div></div>`;
+  const badge=document.getElementById('orderBadge');
+  if(needOrder>0){ badge.textContent=needOrder; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
+
+  fillSelect('fCat', CATEGORIES, true); fillSelect('fSup', Object.keys(SUPPLIERS), true);
+  const fc=val('fCat'),fs=val('fStatus'),fsup=val('fSup'),kw=(val('fKw')||'').trim();
+  const editable=can('canDraft');
+  let html='';
+  CATEGORIES.forEach(cat=>{
+    if(fc&&fc!==cat) return;
+    let rows=items.filter(it=>it.category===cat)
+      .filter(it=>!fs||statusOf(it)===fs).filter(it=>!fsup||it.supplier===fsup)
+      .filter(it=>!kw||it.name.indexOf(kw)>=0||it.code.indexOf(kw)>=0);
+    if(!rows.length) return;
+    html+=`<tr class="cat-row"><td colspan="9" style="border-left:5px solid ${CAT_COLOR[cat]||'#888'}">■ ${esc(cat)}（${rows.length}品目）</td></tr>`;
+    rows.forEach(it=>{
+      const st=statusOf(it), sup=SUPPLIERS[it.supplier]||{color:'#999'};
+      html+=`<tr class="${st==='欠品'||st==='要発注'?'row-flag':''}">
+        <td class="name-td">${esc(it.name)}<div class="muted">${esc(it.code)}</div></td>
+        <td><span class="sup-badge" style="background:${sup.color}">${esc(it.supplier||'—')}</span></td>
+        <td><span class="chip ${chipClass(st)}">${st}</span></td>
+        <td><span class="stock-cell">
+          ${editable?`<button class="btn-mini" onclick="adjust('${esc(it.code)}',-1)">−</button>`:''}
+          <span class="stock-num" style="color:${st==='欠品'?'#E53E3E':st==='要発注'?'#DB6D28':'#1a202c'}">${it.stock}</span>
+          ${editable?`<button class="btn-mini" onclick="adjust('${esc(it.code)}',1)">＋</button>`:''}
+          <span class="muted">${esc(it.unit)}</span></span></td>
+        <td>${it.reorder}</td><td>${it.target||'—'}</td>
+        <td>${yen(it.price)}</td><td>${yen(it.stock*it.price)}</td>
+        <td class="muted">${esc(it.updated||'')}</td></tr>`;
+    });
+  });
+  document.getElementById('dashBody').innerHTML=html||`<tr><td colspan="9" class="muted" style="padding:20px">該当する品目がありません。</td></tr>`;
+}
+function adjust(code,d){ if(!can('canDraft')){toast('在庫調整は発注担当者以上の権限が必要です',true);return;} call('adjustStock',[code,d]); }
+
+/* ============ 発注提案 ============ */
+function renderOrder(){
+  const need=STATE.items.filter(it=>it.stock<=it.reorder);
+  const info=document.getElementById('orderInfo'), area=document.getElementById('orderDrafts');
+  if(!need.length){ info.innerHTML='✅ 現在、発注点を下回っている品目はありません。'; area.innerHTML=''; return; }
+  const total=need.reduce((s,it)=>s+suggestQty(it)*it.price,0);
+  info.innerHTML=`発注が必要な品目：<b>${need.length}件</b>　／　発注先：<b>${new Set(need.map(it=>it.supplier)).size}社</b>　／　発注見込み合計：<b>${yen(total)}</b><br>発注先ごとに発注方法（オンライン／メール／電話／店頭）に合わせた下書きを用意しました。内容を確認して発注を確定してください。`;
+  let html='';
+  Object.keys(SUPPLIERS).forEach(sup=>{
+    const items=need.filter(it=>it.supplier===sup); if(!items.length) return;
+    const s=SUPPLIERS[sup], sub=items.reduce((a,it)=>a+suggestQty(it)*it.price,0);
+    const draftId='draft_'+sup.replace(/[^\w]/g,'');
+    html+=`<div class="draft-box">
+      <div class="draft-head" style="background:${s.color}">
+        <b>${esc(sup)}</b><span class="m">発注方法：${s.method}</span><span class="m">品目 ${items.length}件</span><span class="amt">見込 ${yen(sub)}</span></div>
+      <div class="draft-body">
+        <div class="${s.cash?'warn-box':'info-box'}" style="margin-bottom:10px">連絡先：${esc(s.contact)}${s.cash?'　💴 現金持参が必要です（概算 '+yen(sub)+'）':''}</div>
+        <pre class="draft-pre" id="${draftId}">${esc(buildDraft(sup,items))}</pre>
+        <div class="draft-actions">
+          <button class="btn btn-ghost btn-sm" onclick="copyDraft('${draftId}')">📋 下書きをコピー</button>
+          ${s.method==='メール'?`<button class="btn btn-ghost btn-sm" onclick='mailtoDraft(${JSON.stringify(sup)})'>✉ メール作成を開く</button>`:''}
+          <span style="flex:1"></span>
+          <button class="btn ${can('canConfirm')?'btn-ok':''} btn-sm" ${can('canConfirm')?'':'disabled'} onclick='confirmOrder(${JSON.stringify(sup)})'>
+            ${can('canConfirm')?'✔ この発注を確定（在庫反映）':'🔒 確定は承認者のみ'}</button>
+        </div>
+        ${!can('canConfirm')?'<p class="muted" style="margin-top:6px">誤発注防止のため、発注の確定は承認者権限が必要です（ダブルチェック）。担当者は下書き作成まで行えます。</p>':''}
+      </div></div>`;
+  });
+  area.innerHTML=html;
+}
+function buildDraft(sup,items){
+  const s=SUPPLIERS[sup];
+  const lines=items.map(it=>({...it,qty:suggestQty(it),amt:suggestQty(it)*it.price}));
+  const sub=lines.reduce((a,l)=>a+l.amt,0);
+  if(s.method==='オンライン'){
+    let t='【アスクル 注文リスト】'+today()+'\n─────────────────────────────\nコード      品名                    数量   単価     金額\n';
+    lines.forEach(l=>{ t+=pad(l.code,10)+pad(l.name,22)+pad(l.qty+l.unit,7)+pad(yen(l.price),9)+yen(l.amt)+'\n'; });
+    t+='─────────────────────────────\n合計 '+lines.length+'品目　　　　　　　　　　　　　　'+yen(sub)+'\n※サイトにログインし、上記コードでカートに追加して注文してください。';
+    return t;
+  }
+  if(s.method==='メール'){
+    let t='宛先：'+s.contact+'\n件名：【発注のご依頼】民泊消耗品（'+today()+'）\n───────────────\nJTB商事 ご担当者様\n\nいつもお世話になっております。\n下記の通り発注をお願いいたします。\n\n';
+    lines.forEach((l,i)=>{ t+=(i+1)+'. '+l.name+'　'+l.qty+l.unit+'（単価'+yen(l.price)+'）\n'; });
+    t+='\n合計 '+lines.length+'品目　発注見込み金額 '+yen(sub)+'\n\nお手数ですが納期のご連絡をお願いいたします。\n何卒よろしくお願いいたします。';
+    return t;
+  }
+  if(s.method==='電話・現金'){
+    let t='【電話発注メモ】'+today()+'\n連絡先：'+s.contact+'\n───────────────\n◆伝える内容（読み上げ用）\n';
+    lines.forEach(l=>{ t+='・'+l.name+'　'+l.qty+l.unit+'\n'; });
+    t+='───────────────\n◆支払：現金　概算 '+yen(sub)+'（お釣り分も準備）\n◆確認事項：在庫有無 / 取り置き可否 / 受取日\n※通話後、受注内容と金額をこのメモに追記して発注確定してください。';
+    return t;
+  }
+  let t='【店頭 買い物メモ】'+today()+'　'+sup+'\n───────────────\n';
+  lines.forEach(l=>{ t+='☐ '+l.name+'　'+l.qty+l.unit+'（目安'+yen(l.price)+'）\n'; });
+  t+='───────────────\n概算合計 '+yen(sub)+'（現金持参）\n※品切れ時は代替品可。レシートを保管し、購入後に数量を確定してください。';
+  return t;
+}
+function pad(s,n){ s=String(s); let w=0; for(const c of s){ w+=(c.charCodeAt(0)>255?2:1); } while(w<n){ s+=' '; w++; } return s; }
+function copyDraft(id){ const t=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(t).then(()=>toast('下書きをコピーしました')).catch(()=>toast('コピーに失敗しました',true)); }
+function mailtoDraft(sup){
+  const items=STATE.items.filter(it=>it.supplier===sup&&it.stock<=it.reorder);
+  const body=buildDraft(sup,items).split('\n').slice(3).join('\n');
+  window.open('mailto:'+SUPPLIERS[sup].contact+'?subject='+encodeURIComponent('【発注のご依頼】民泊消耗品（'+today()+'）')+'&body='+encodeURIComponent(body),'_blank');
+}
+function confirmOrder(sup){
+  if(!can('canConfirm')){ toast('発注確定は承認者のみです',true); return; }
+  const items=STATE.items.filter(it=>it.supplier===sup&&it.stock<=it.reorder);
+  const sub=items.reduce((a,it)=>a+suggestQty(it)*it.price,0);
+  if(!confirm(`【${sup}】へ ${items.length}品目・見込 ${yen(sub)} で発注を確定します。\nよろしいですか？（発注済として記録します）`)) return;
+  call('confirmOrder',[sup],`${sup} へ発注を記録しました`);
+}
+
+/* ============ 入荷・履歴 ============ */
+function renderReceive(){
+  fillSelect('hSup', Object.keys(SUPPLIERS), true);
+  const pending=STATE.orders.filter(o=>o.status==='発注済');
+  document.getElementById('pendingBody').innerHTML = pending.length? pending.map(o=>{
+    const sup=SUPPLIERS[o.supplier]||{color:'#999'};
+    return `<tr><td>${esc(o.date)}</td><td><span class="sup-badge" style="background:${sup.color}">${esc(o.supplier)}</span></td>
+      <td class="left-td">${esc(o.name)}</td><td>${o.qty}${esc(o.unit)}</td><td>${yen(o.amount)}</td>
+      <td><span class="chip chip-blue">発注済</span></td>
+      <td><button class="btn ${can('canDraft')?'btn-ok':''} btn-sm" ${can('canDraft')?'':'disabled'} onclick="receiveOrder('${esc(o.id)}')">📦 入荷確認</button></td></tr>`;
+  }).join('') : `<tr><td colspan="7" class="muted" style="padding:18px">入荷待ちの発注はありません。</td></tr>`;
+  const hs=val('hSup'); const hist=STATE.orders.filter(o=>!hs||o.supplier===hs);
+  document.getElementById('historyBody').innerHTML = hist.length? hist.map(o=>{
+    const sup=SUPPLIERS[o.supplier]||{color:'#999'};
+    return `<tr><td>${esc(o.date)}</td><td><span class="sup-badge" style="background:${sup.color}">${esc(o.supplier)}</span></td>
+      <td class="left-td">${esc(o.name)}</td><td>${o.qty}${esc(o.unit)}</td><td>${yen(o.price)}</td><td>${yen(o.amount)}</td>
+      <td><span class="chip ${o.status==='納品済'?'chip-ok':'chip-blue'}">${esc(o.status)}</span></td><td class="muted">${esc(o.received||'—')}</td></tr>`;
+  }).join('') : `<tr><td colspan="8" class="muted" style="padding:18px">発注履歴はまだありません。</td></tr>`;
+}
+function receiveOrder(id){
+  if(!can('canDraft')){ toast('入荷登録は担当者以上の権限が必要です',true); return; }
+  const o=STATE.orders.find(x=>x.id===id); if(!o)return;
+  if(!confirm(`【${o.name}】${o.qty}${o.unit} の入荷を確認します。在庫へ加算します。`)) return;
+  call('receiveOrder',[id],'入荷を反映しました');
+}
+
+/* ============ 品目マスタ + 検証 ============ */
+function renderMaster(){
+  runValidation();
+  const canE=can('canEdit');
+  document.getElementById('btnAdd').disabled=!canE;
+  document.getElementById('btnImport').disabled=!canE;
+  const supOpts=Object.keys(SUPPLIERS);
+  document.getElementById('masterBody').innerHTML = STATE.items.map(it=>{
+    return `<tr>
+      <td>${cell(it.code,'code',it.code,canE,'text',80)}</td>
+      <td class="left-td">${cell(it.code,'name',it.name,canE,'text',160)}</td>
+      <td>${selCell(it.code,'category',it.category,CATEGORIES,canE)}</td>
+      <td>${selCell(it.code,'supplier',it.supplier,supOpts,canE)}</td>
+      <td>${cell(it.code,'unit',it.unit,canE,'text',50)}</td>
+      <td>${cell(it.code,'stock',it.stock,canE,'num')}</td>
+      <td>${cell(it.code,'reorder',it.reorder,canE,'num')}</td>
+      <td>${cell(it.code,'target',it.target,canE,'num')}</td>
+      <td>${cell(it.code,'lot',it.lot,canE,'num')}</td>
+      <td>${cell(it.code,'price',it.price,canE,'num')}</td>
+      <td>${canE?`<button class="btn-mini" title="削除" onclick="delItem('${esc(it.code)}')">🗑</button>`:''}</td></tr>`;
+  }).join('') || `<tr><td colspan="11" class="muted" style="padding:18px">品目がありません。</td></tr>`;
+}
+function cell(code,f,v,editable,type,w){
+  if(!editable) return esc(v);
+  return `<input class="mini-input" style="width:${w||64}px;text-align:${type==='text'?'left':'center'}" value="${esc(v)}" onchange="editItem('${esc(code)}','${f}',this.value)">`;
+}
+function selCell(code,f,v,opts,editable){
+  if(!editable) return esc(v);
+  return `<select class="mini-input" style="width:auto" onchange="editItem('${esc(code)}','${f}',this.value)">`+
+    opts.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')+`</select>`;
+}
+function editItem(code,f,v){ if(!can('canEdit')){toast('編集は承認者のみ',true);renderMaster();return;} call('saveItemField',[code,f,v]); }
+function addItem(){ if(!can('canEdit')){toast('追加は承認者のみ',true);return;} call('addItem',[]); }
+function delItem(code){ if(!can('canEdit')){toast('削除は承認者のみ',true);return;}
+  const it=STATE.items.find(x=>x.code===code); if(!it)return;
+  if(!confirm(`「${it.name}」を削除しますか？`))return; call('deleteItem',[code],'削除しました'); }
+
+function runValidation(){
+  const issues=[], codeMap={}, items=STATE.items;
+  items.forEach((it,i)=>{
+    const label=it.name||it.code||('行'+(i+1));
+    ['code','name','category','supplier','unit'].forEach(f=>{ if(!String(it[f]||'').trim()) issues.push({lv:'err',msg:`「${label}」の ${jp(f)} が空欄です`}); });
+    if(it.price<=0) issues.push({lv:'warn',msg:`「${label}」の単価が0です。改定漏れの可能性`});
+    if(it.reorder<=0) issues.push({lv:'warn',msg:`「${label}」の発注点が未設定（0）です`});
+    if(it.lot<=0) issues.push({lv:'warn',msg:`「${label}」の発注ロットが0です`});
+    if(it.target && it.target<it.reorder) issues.push({lv:'warn',msg:`「${label}」の適正在庫が発注点を下回っています`});
+    if(it.supplier && !SUPPLIERS[it.supplier]) issues.push({lv:'err',msg:`「${label}」の発注先「${it.supplier}」はマスタ未登録（表記ゆれの可能性）`});
+    if(it.category && CATEGORIES.indexOf(it.category)<0) issues.push({lv:'err',msg:`「${label}」の分類「${it.category}」は規定外`});
+    if(it.code) codeMap[it.code]=(codeMap[it.code]||0)+1;
+  });
+  Object.keys(codeMap).forEach(c=>{ if(codeMap[c]>1) issues.push({lv:'err',msg:`コード「${c}」が${codeMap[c]}件重複しています`}); });
+  const ng={}; items.forEach(it=>{ if(it.name){ (ng[it.name]=ng[it.name]||{})[it.supplier]=1; } });
+  Object.keys(ng).forEach(n=>{ if(Object.keys(ng[n]).length>1) issues.push({lv:'warn',msg:`「${n}」が複数の発注先に登録されています。統一を確認してください`}); });
+  const area=document.getElementById('validationArea');
+  if(!issues.length){ area.innerHTML='<div class="info-box">✅ 要確認のデータは見つかりませんでした。</div>'; return; }
+  const errs=issues.filter(x=>x.lv==='err').length, warns=issues.length-errs;
+  area.innerHTML=`<div class="warn-box">⚠ ${issues.length}件の要確認ポイントがあります（エラー ${errs} / 注意 ${warns}）。担当者にご確認ください。</div>`+
+    issues.map(x=>`<div class="check-item"><span class="chip ${x.lv==='err'?'chip-danger':'chip-warn'}">${x.lv==='err'?'エラー':'注意'}</span><span>${esc(x.msg)}</span></div>`).join('');
+}
+function jp(f){ return {code:'コード',name:'品名',category:'分類',supplier:'発注先',unit:'単位'}[f]||f; }
+
+/* CSV 取込・出力 */
+function importCSV(input){
+  if(!can('canEdit')){ toast('取込は承認者のみ',true); input.value=''; return; }
+  const file=input.files[0]; if(!file)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());
+    let start=0; if(lines[0]&&/品名|コード|name/i.test(lines[0])) start=1;
+    const rows=[];
+    for(let i=start;i<lines.length;i++){ const c=parseCSVLine(lines[i]); if(c.length>=2) rows.push(c); }
+    input.value='';
+    if(!rows.length){ toast('取り込むデータがありません',true); return; }
+    call('importItems',[JSON.stringify(rows)],`${rows.length}件を取り込みました`);
+  };
+  rd.readAsText(file,'UTF-8');
+}
+function parseCSVLine(line){ const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){ const ch=line[i];
+    if(q){ if(ch==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=ch; }
+    else { if(ch==='"')q=true; else if(ch===','){out.push(cur);cur='';} else cur+=ch; } }
+  out.push(cur); return out; }
+function toCSV(rows){ return rows.map(r=>r.map(v=>{ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(',')).join('\r\n'); }
+function download(name,text){ const blob=new Blob(['﻿'+text],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+function exportMasterCSV(){
+  const rows=[['コード','品名','分類','発注先','単位','在庫','発注点','適正在庫','発注ロット','単価']];
+  STATE.items.forEach(it=>rows.push([it.code,it.name,it.category,it.supplier,it.unit,it.stock,it.reorder,it.target,it.lot,it.price]));
+  download('品目マスタ_'+today()+'.csv',toCSV(rows)); toast('マスタを出力しました');
+}
+
+/* ============ 監査ログ ============ */
+function renderLog(){
+  const types=[]; STATE.logs.forEach(l=>{ if(types.indexOf(l.type)<0) types.push(l.type); });
+  fillSelect('logType', types, true);
+  const ft=val('logType'); const rows=STATE.logs.filter(l=>!ft||l.type===ft);
+  document.getElementById('logBody').innerHTML = rows.length? rows.map(l=>
+    `<tr><td class="muted" style="white-space:nowrap">${esc(l.time)}</td><td>${esc(l.user)}</td><td>${esc(l.role)}</td>
+     <td><span class="chip chip-gray">${esc(l.type)}</span></td><td class="left-td">${esc(l.detail)}</td></tr>`
+  ).join('') : `<tr><td colspan="5" class="muted" style="padding:18px">ログはまだありません。</td></tr>`;
+}
+
+/* ============ 共通 ============ */
+function val(id){ const el=document.getElementById(id); return el?el.value:''; }
+function fillSelect(id,opts,keepFirst){
+  const sel=document.getElementById(id); if(!sel)return;
+  const cur=sel.value; const first=keepFirst?sel.querySelector('option').outerHTML:'';
+  sel.innerHTML=first+opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  if([].slice.call(sel.options).some(o=>o.value===cur)) sel.value=cur;
+}
+function renderAll(){
+  document.getElementById('userEmail').textContent=STATE.me.email||'(未ログイン)';
+  const tag=document.getElementById('roleTag');
+  const rc={viewer:'#718096',staff:'#2E75B6',manager:'#B7791F'};
+  tag.textContent=STATE.me.roleName; tag.style.background=rc[STATE.me.role]||'#718096'; tag.style.color='#fff';
+  renderDashboard(); renderOrder(); renderReceive(); renderMaster(); renderLog();
+}
+
+/* 初期化 */
+window.addEventListener('load',function(){ call('getBootstrap',[]); });
+</script>
+</body>
+</html>
